@@ -1,6 +1,6 @@
 const { createCompletion, loadModel } = require("gpt4all/src/gpt4all.js");
 const path = require("path");
-const logger = require("./logger");
+const { logger } = require("./logger");
 
 const DEFAULT_PROMPT_CONTEXT = {
   temp: 0.7,
@@ -11,6 +11,8 @@ const DEFAULT_PROMPT_CONTEXT = {
   nBatch: 8,
 };
 
+const symbols = [".", "?", "!"];
+
 const useGpt = async () => {
   const model = await loadModel("mistral-7b-openorca.gguf2.Q4_0.gguf", {
     verbose: true,
@@ -18,7 +20,7 @@ const useGpt = async () => {
   });
 
   const sendMessageToChat = async (message, systemPrompt) => {
-    logger.log("send message:", message);
+    logger.log("sendMessage:", message);
 
     const sendStartTime = process.hrtime();
 
@@ -46,12 +48,45 @@ const useGpt = async () => {
     return response;
   };
 
+  const cutIncompleteMessage = (message) => {
+    let result = message;
+    // if sentence ends without ".", "?", or "!", cut it
+  
+    if (symbols.every((symbol) => message.endsWith(symbol))) {
+      return result;
+    }
+  
+    // if in message only one sentence, without ".", "?", or "!" - send message
+    if (symbols.every((symbol) => !message.includes(symbol))) {
+      return result;
+    }
+  
+    for (const symbol of symbols) {
+      if (!message.endsWith(symbol)) {
+        const lastSymbolIndex = message.lastIndexOf(symbol);
+        result = message.substring(0, lastSymbolIndex + 1);
+        break;
+      }
+    }
+  
+    result = message.trim()
+  
+    if (result.length === 0) {
+      logger.log("empty-result", message);
+  
+      return message;
+    }
+  
+    return result;
+  };
+
   return {
     model,
+    cutIncompleteMessage,
     sendMessageToChat,
   };
 };
 
 module.exports = {
-    useGpt,
+  useGpt,
 };

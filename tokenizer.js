@@ -3,7 +3,12 @@ const stopword = require("stopword");
 const tokenizer = new natural.WordTokenizer();
 
 const getKeysFromQuery = (userQuery) => {
-  const keywords = tokenizer.tokenize(userQuery);
+  let keywords = tokenizer.tokenize(userQuery);
+
+  keywords =  stopword.removeStopwords(keywords)
+  
+  // rm duplicates
+  keywords = [...new Set(keywords)];
 
   return {
     keywords: stopword.removeStopwords(keywords),
