@@ -1,0 +1,18 @@
+{
+  "scripts": {
+    "start": "node app.js",
+    "start:reset": "node cache clear && node app.js"
+  },
+  "dependencies": {
+    "axios": "^1.6.7",
+    "file-system-cache": "^2.4.4",
+    "google": "^2.1.0",
+    "gpt4all": "^3.1.0",
+    "lru-cache": "^10.2.0",
+    "natural": "^6.10.5",
+    "node-llama-cpp": "^2.8.8",
+    "node-nlp": "^4.27.0",
+    "node-summarizer": "^1.0.7",
+    "stopword": "^3.0.1"
+  }
+}
