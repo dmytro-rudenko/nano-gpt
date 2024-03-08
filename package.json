@@ -13,6 +13,10 @@
     "node-llama-cpp": "^2.8.8",
     "node-nlp": "^4.27.0",
     "node-summarizer": "^1.0.7",
+    "puppeteer": "^22.4.1",
+    "puppeteer-core": "^22.4.1",
+    "puppeteer-extra": "^3.3.6",
+    "puppeteer-extra-plugin-stealth": "^2.11.2",
     "stopword": "^3.0.1"
   }
 }

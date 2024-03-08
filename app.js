@@ -1,9 +1,9 @@
-const { getWikiSummary } = require("./wiki.js");
-const { googleSearch } = require("./google-search.js");
-const { summarize } = require("./summarize.js");
-const { useGpt } = require("./gpt.js");
-const { getKeysFromQuery } = require("./tokenizer.js");
-const { logger } = require("./logger.js");
+const { getWikiSummary } = require("./services/wiki.js");
+const { googleSearch } = require("./services/google-search.js");
+const { summarize } = require("./services/summarize.js");
+const { useGpt } = require("./services/gpt.js");
+const { getKeysFromQuery } = require("./services/tokenizer.js");
+const { logger } = require("./services/logger.js");
 let retryCounter = 0;
 const MAX_RETRY = 3;
 

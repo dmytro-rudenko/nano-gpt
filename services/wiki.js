@@ -1,5 +1,7 @@
 const axios = require("axios");
-const { cache } = require("./cache");
+const { cache } = require("./services/cache");
+
+const SORRY_DESCRIPTION = "Sorry, there is no information about this topic";
 
 const getWikiSummary = async (word) => {
   try {
@@ -12,26 +14,31 @@ const getWikiSummary = async (word) => {
     const summary = `https://en.wikipedia.org/api/rest_v1/page/summary/${word}`;
     const { data } = await axios.get(summary);
 
-    // console.log("wikidata", data)
+    console.log("wikidata", data)
 
     const isManyTerms =
       data.description === "Topics referred to by the same term";
+      
 
     const errorExceptions = [
       typeof data === "string",
       data.title === "Not found",
+      data.extract.includes("may refer to:"),
+      data.description.includes("may refer to:"),
     ];
 
     if (errorExceptions.includes(true)) {
-      return false;
+      return {
+        title: word,
+        description: SORRY_DESCRIPTION,
+      };
     }
 
-    const shortDescription = isManyTerms ? data.extract : data.description;
+    const description = isManyTerms ? data.extract : data.description;
 
     const result = {
       title: data.title || word,
-      description: shortDescription || "",
-      // description: data.extract || "",
+      description: description || SORRY_DESCRIPTION
     };
 
     await cache.set(cacheKey, result);
@@ -39,7 +46,10 @@ const getWikiSummary = async (word) => {
     return result;
   } catch (err) {
     console.log(err.message);
-    return false;
+    return {
+      title: word,
+      description: SORRY_DESCRIPTION
+    };;
   }
 };
 
