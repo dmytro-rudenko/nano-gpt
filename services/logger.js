@@ -2,7 +2,7 @@ const logger = {
   log: (key, value, json, ...args) => {
     if (!value && !json && args.length === 0) {
       console.log(key);
-      return
+      return;
     }
 
     const logObject = {
@@ -13,12 +13,12 @@ const logger = {
       logObject.args = args;
     }
 
-    if (json) {
-      console.log(JSON.stringify(logObject, null, 2));
-      return
-    }
+    //  if (json) {
+    console.log(JSON.stringify(logObject, null, 2));
+    //   return
+    // }
 
-    console.log(logObject);
+    // console.log(logObject);
   },
 };
 

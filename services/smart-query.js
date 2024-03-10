@@ -5,13 +5,11 @@ const { useGpt } = require("./gpt.js");
 // const { getKeysFromQuery } = require("./tokenizer.js");
 const { logger } = require("./logger.js");
 const { getTranslatedText } = require("./translate.js");
+const { queryClassify } = require("../agents/classificators/query-classify.js");
+const {
+  requestClassify,
+} = require("../agents/classificators/request-classify.js");
 
-// const rmBreakLine = (message) => {
-//   return message.replace(/(\r\n|\n|\r)/gm, " ");
-// };
-
-// let retryCounter = 0;
-// const MAX_RETRY = 3;
 let memory = {
   lastQuery: null,
   lastResult: null,
@@ -29,47 +27,70 @@ const smartQuery = async (query, model) => {
     text: query,
   });
 
+  let result = "";
 
+  const queryType = await queryClassify(query);
 
-  memory.active = memory.startMemoryAt > (new Date()).getTime() - 2 * 60 * 1000;
+  logger.log("queryType", queryType);
 
-  let response = "";
-
-  if (!memory.active) {
-    const googleData = await googleSearch(query);
-    // logger.log("googleData:\n", googleData.length, true);
-  
-    logger.log("googleDataInformation", googleData);
-  
-    const message = `This is my query: "${query}". This is provided information from Google search: "${googleData}". Write an answer to the request using(optional) the provided information.`;
-
-    const pipe = await pipeline(
-      message,
-      "You are a helpful assistant."
-    );
-
-    memory.active = true;
-    memory.lastQuery = query;
-    memory.send = pipe.send;
-    response = pipe.response
-
-    memory.startMemoryAt = (new Date()).getTime();
-  } else {
-    const res = await memory.send(query);
-    response = res.response
+//  return queryType
+  if (queryType === "task") {
+    result = "I still do not know how to perform tasks";
   }
 
-  console.log("response:\n", response);
-  logger.log("Response:");
-  let result = cutIncompleteMessage(response.choices[0].message.content);
+  let response;
 
+  if (queryType === "request") {
+    let requestType = await requestClassify(query);
+    let pipe;
+    logger.log("requestType", requestType);
+
+    memory.active = memory.startMemoryAt > new Date().getTime() - 2 * 60 * 1000;
+
+    if (!memory.active) {
+      if (requestType === "abstract") {
+        pipe = await pipeline({
+          message: query,
+          systemPrompt: "You are a helpful assistant.",
+        });
+      } else if (requestType === "precisely") {
+        const googleData = await googleSearch(query);
+
+        logger.log("googleDataInformation", googleData);
+
+        const message = `This is my query: "${query}". This is provided information from Google search: "${googleData}". Write an answer to the request using(optional) the provided information.`;
+
+        pipe = await pipeline({
+          message,
+          systemPrompt: "You are a helpful assistant.",
+        });
+      }
+
+      console.log("pipeline", pipe);
+
+      memory.active = true;
+      memory.lastQuery = query;
+      memory.send = pipe.send;
+      response = pipe.response;
+
+      memory.startMemoryAt = new Date().getTime();
+    } else {
+      const res = await memory.send(query);
+      response = res.response;
+    }
+
+    logger.log("response:\n", response);
+    logger.log("Response:");
+
+    result = cutIncompleteMessage(response.choices[0].message.content);
+  }
   result = await getTranslatedText({
     from: "en",
     to: "uk",
     text: result,
   });
 
-  logger.log(result);
+  // logger.log(result);
 
   return result;
 };
@@ -78,50 +99,48 @@ module.exports = {
   smartQuery,
 };
 
+//   const keys = getKeysFromQuery(query);
 
-  //   const keys = getKeysFromQuery(query);
+//   logger.log("keys", keys.keywords);
 
-  //   logger.log("keys", keys.keywords);
+//   if (keys.keywords.length === 0) {
+//     retryCounter++;
 
-  //   if (keys.keywords.length === 0) {
-  //     retryCounter++;
+//     if (retryCounter < MAX_RETRY) {
+//       logger.log("retrying...", retryCounter);
+//       return main();
+//     } else {
+//       logger.log("retry limit reached");
+//       return;
+//     }
+//   }
 
-  //     if (retryCounter < MAX_RETRY) {
-  //       logger.log("retrying...", retryCounter);
-  //       return main();
-  //     } else {
-  //       logger.log("retry limit reached");
-  //       return;
-  //     }
-  //   }
+//   const startTime = process.hrtime();
 
-  //   const startTime = process.hrtime();
+//   let keyswordsSenceStore = {};
 
-  //   let keyswordsSenceStore = {};
+//   for (const keyword of keys.keywords) {
+//     const summary = await getWikiSummary(keyword);
+//     keyswordsSenceStore[keyword] = summary;
+//     logger.log("summary", keyword, false, "completed");
+//   }
 
-  //   for (const keyword of keys.keywords) {
-  //     const summary = await getWikiSummary(keyword);
-  //     keyswordsSenceStore[keyword] = summary;
-  //     logger.log("summary", keyword, false, "completed");
-  //   }
+//   let keywordsSenceMessage = "";
+//   for (const keyword in keyswordsSenceStore) {
+//     // console.log("sence", keyswordsSenceStore[keyword])
 
-  //   let keywordsSenceMessage = "";
-  //   for (const keyword in keyswordsSenceStore) {
-  //     // console.log("sence", keyswordsSenceStore[keyword])
+//     const info = rmBreakLine(
+//       keyswordsSenceStore[keyword]["description"].trim()
+//     );
 
-  //     const info = rmBreakLine(
-  //       keyswordsSenceStore[keyword]["description"].trim()
-  //     );
+//     console.log("info", info);
 
-  //     console.log("info", info);
+//     keywordsSenceMessage += `Info about "${keyword}" - ${info}. `;
+//   }
 
-  //     keywordsSenceMessage += `Info about "${keyword}" - ${info}. `;
-  //   }
+//   logger.log("keywordsSenceMessage", keywordsSenceMessage);
 
-  //   logger.log("keywordsSenceMessage", keywordsSenceMessage);
+//   endTime = process.hrtime(startTime);
 
-  //   endTime = process.hrtime(startTime);
-
-  //   // get process time in seconds
-  //   console.log(`WikiTime: ${(endTime[0] + endTime[1] / 1e9).toFixed(3)}s`);
-
+//   // get process time in seconds
+//   console.log(`WikiTime: ${(endTime[0] + endTime[1] / 1e9).toFixed(3)}s`);

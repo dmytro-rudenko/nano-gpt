@@ -22,33 +22,47 @@ const symbols = [".", "?", "!"];
 
 const useGpt = async (model) => {
   const sendToLocalModel = async (messages, opts) => {
+    // rm first message
+    messages.shift();
     const response = await createCompletion(model, messages, opts);
     return response;
   };
 
-  const sendToChatGpt = async (messages, options) => {
+  const sendToChatGpt = async (messages, opts, options) => {
+    // console.log("opts", opts);
+    const promptMessages = [
+      {
+        role: "system",
+        content: opts.systemPromptTemplate,
+      },
+    ].concat(messages);
+    // logger.log("messages", promptMessages);
     const config = {
       temperature: 1.0,
       max_tokens: 512,
       model: "gpt-3.5-turbo-0613",
-      messages,
+      messages: promptMessages,
       ...options,
     };
 
+    // console.log("config", JSON.stringify(config, null, 2));
+
     const completion = await openai.chat.completions.create(config);
+
+    // logger.log("completion", completion);
 
     return completion;
   };
 
-  const sendGpt = async (messages, opts, type) => {
+  const sendGpt = async (messages, opts, type, openai) => {
     if (type === "local") {
       return sendToLocalModel(messages, opts);
     } else if (type === "chatgpt") {
-      return sendToChatGpt(messages);
+      return sendToChatGpt(messages, opts, openai);
     }
   };
 
-  const sendMessageToChat = async (message, systemPrompt) => {
+  const sendMessageToChat = async ({ message, systemPrompt, options }) => {
     logger.log("sendMessage:", message);
 
     const sendStartTime = process.hrtime();
@@ -64,17 +78,18 @@ const useGpt = async (model) => {
         ...DEFAULT_PROMPT_CONTEXT,
         systemPromptTemplate: systemPrompt,
       },
-      MODEL_TYPE
+      MODEL_TYPE,
+      options
     );
 
-    logger.log("usage", response.usage);
-    // console.log("response:\n", response.choices[0].message.content);
+    // logger.log("usage", response.usage);
+    // logger.log("response:\n", response);
 
     const sendEndTime = process.hrtime(sendStartTime);
     // get process time in seconds
-    console.log(`Time: ${(sendEndTime[0] + sendEndTime[1] / 1e9).toFixed(3)}s`);
+    // logger.log(`Time: ${(sendEndTime[0] + sendEndTime[1] / 1e9).toFixed(3)}s`);
 
-    return response;
+    return { response };
   };
 
   const cutIncompleteMessage = (message) => {
@@ -101,7 +116,7 @@ const useGpt = async (model) => {
     result = message.trim();
 
     if (result.length === 0) {
-      logger.log("empty-result", message);
+      // logger.log("empty-result", message);
 
       return message;
     }
@@ -109,14 +124,10 @@ const useGpt = async (model) => {
     return result;
   };
 
-  const messages = [];
+  const pipeline = async ({ message, systemPrompt }) => {
+    let messages = [];
 
-  const pipeline = async (message, systemPrompt) => {
-    logger.log("pipeline", message);
-    messages.push({
-      role: "system",
-      content: systemPrompt,
-    })
+    // logger.log("pipeline", message);
     const send = async (msg) => {
       messages.push({
         role: "user",
@@ -132,12 +143,21 @@ const useGpt = async (model) => {
         MODEL_TYPE
       );
 
+      if (!messages[0].role === "system") {
+        messages = [
+          {
+            role: "system",
+            content: systemPrompt,
+          },
+        ].concat(messages);
+      }
+
       messages.push({
         role: "assistant",
         content: response.choices[0].message.content,
       });
 
-      console.log("dialog", JSON.stringify(messages, null, 2));
+      // logger.log("dialog", JSON.stringify(messages, null, 2));
 
       return {
         response,

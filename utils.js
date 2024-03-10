@@ -14,6 +14,12 @@ const retry = (maxCount, callback) => {
     };
 }
 
+const rmBreakLine = (message) => {
+  return message.replace(/(\r\n|\n|\r)/gm, " ");
+};
+
+
 module.exports = {
     retry,
+    rmBreakLine
 }

@@ -1,22 +1,13 @@
-const { useGpt } = require("../services/gpt");
-const { retry } = require("../utils");
+const { retry } = require("../../utils");
+const { classifyBuilder } = require("./classify-builder");
 
 const tasksTypes = ["request", "task"];
 
-const queryClassify = async (query) => {
-  const { pipeline } = await useGpt();
-  const { response } = await pipeline(
-    query,
-    'You are a classification specialist. Your task is to determine from the text whether it is a request for information or a task to be performed. You can answer only "request" or "task".'
-  );
-
-  const type = response.choices[0].message.content
-  if (tasksTypes.includes(type)) {
-    return type
-  } else {
-    throw new Error("Incorrect classification");
-  }
-};
+const queryClassify = async (query) =>
+  classifyBuilder(
+    "You are a classification specialist. Your task is to determine from the text whether it is a request for information or a task to be performed.",
+    ["request", "task"]
+  )(query);
 
 // const test = async () => {
 //   const result = await retry(3, queryClassify)("send a message to these people")
@@ -35,5 +26,5 @@ const queryClassify = async (query) => {
 // test();
 
 module.exports = {
-  queryClassify,
+  queryClassify: retry(3, queryClassify),
 };
