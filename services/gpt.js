@@ -11,7 +11,7 @@ const DEFAULT_PROMPT_CONTEXT = {
   nBatch: 8,
 };
 
-const API_KEY = "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";
+const API_KEY = "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";
 
 const openai = new OpenAI({
   apiKey: API_KEY,
@@ -113,7 +113,7 @@ const useGpt = async (model) => {
 
   const pipeline = async (message, systemPrompt) => {
     logger.log("pipeline", message);
-    message.push({
+    messages.push({
       role: "system",
       content: systemPrompt,
     })
