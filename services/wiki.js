@@ -1,5 +1,5 @@
 const axios = require("axios");
-const { cache } = require("./services/cache");
+const { cache } = require("./cache");
 
 const SORRY_DESCRIPTION = "Sorry, there is no information about this topic";
 
@@ -14,7 +14,7 @@ const getWikiSummary = async (word) => {
     const summary = `https://en.wikipedia.org/api/rest_v1/page/summary/${word}`;
     const { data } = await axios.get(summary);
 
-    console.log("wikidata", data)
+    // console.log("wikidata", data)
 
     const isManyTerms =
       data.description === "Topics referred to by the same term";

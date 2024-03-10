@@ -1,4 +1,3 @@
-const axios = require("axios");
 const { cache } = require("./cache");
 const { init, goTo } = require("./puppeteer");
 
