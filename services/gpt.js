@@ -1,6 +1,7 @@
 const { createCompletion } = require("gpt4all/src/gpt4all.js");
 const { OpenAI } = require("openai");
 const { logger } = require("./logger");
+const config = require("../config");
 
 const DEFAULT_PROMPT_CONTEXT = {
   temp: 0.7,
@@ -11,7 +12,7 @@ const DEFAULT_PROMPT_CONTEXT = {
   nBatch: 8,
 };
 
-const API_KEY = "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";
+const API_KEY = config.OPENAI_KEY
 
 const openai = new OpenAI({
   apiKey: API_KEY,

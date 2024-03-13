@@ -1,6 +1,7 @@
 const { useGpt } = require("../../services/gpt");
 
 const classifyBuilder = (prompt, answers, openai) => {
+  console.log("classifyBuilder", answers);
   const classify = async (query) => {
     const { sendMessageToChat } = await useGpt();
     const { response } = await sendMessageToChat({
@@ -12,6 +13,9 @@ const classifyBuilder = (prompt, answers, openai) => {
     });
 
     const answer = response.choices[0].message.content.trim();
+
+    console.log("answer", answer);
+
     if (answers.includes(answer)) {
       return answer;
     } else {

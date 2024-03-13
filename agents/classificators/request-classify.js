@@ -21,5 +21,5 @@ const requestClassify = async (query) =>
 // test();
 
 module.exports = {
-  requestClassify: retry(3, requestClassify),
+  requestClassify,
 };

@@ -6,6 +6,7 @@
   "dependencies": {
     "axios": "^1.6.7",
     "bull": "^4.12.2",
+    "dotenv": "^16.4.5",
     "file-system-cache": "^2.4.4",
     "google": "^2.1.0",
     "gpt4all": "^3.1.0",
