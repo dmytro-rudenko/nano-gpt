@@ -1,4 +1,3 @@
-const { retry } = require("../../utils");
 const { classifyBuilder } = require("./classify-builder");
 
 const requestClassify = async (query) =>
@@ -11,10 +10,10 @@ const requestClassify = async (query) =>
   )(query);
 
 // const test = async () => {
-//   const result = await retry(1, requestClassify)("What is the meaning of life?");
+//   const result = await requestClassify("What is the meaning of life?");
 //   console.log("test result", result);
 
-//   // const result2 = await retry(3, requestClassify)("Who is Steve Jobs?");
+//   // const result2 = await requestClassify("Who is Steve Jobs?");
 //   // console.log("test result", result2);
 // };
 

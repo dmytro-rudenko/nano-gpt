@@ -4,10 +4,11 @@ const { useQueue } = require("./services/queue.js");
 const path = require("path");
 const { loadModel } = require("gpt4all");
 const main = async () => {
-  const model = await loadModel("mistral-7b-openorca.gguf2.Q4_0.gguf", {
-    verbose: true,
-    modelPath: path.join(__dirname, "models"),
-  });
+  // const model = await loadModel("mistral-7b-openorca.gguf2.Q4_0.gguf", {
+  //   verbose: true,
+  //   modelPath: path.join(__dirname, "models"),
+  // });
+  const model = undefined
 
   const { handleTaskQueue, clearQueue } = await useQueue(model);
   await clearQueue();

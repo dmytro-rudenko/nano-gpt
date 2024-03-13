@@ -1,7 +1,9 @@
 const { useGpt } = require("../../services/gpt");
+const { retry } = require("../../utils");
+
+const TRY_LIMIT = 3
 
 const classifyBuilder = (prompt, answers, openai) => {
-  console.log("classifyBuilder", answers);
   const classify = async (query) => {
     const { sendMessageToChat } = await useGpt();
     const { response } = await sendMessageToChat({
@@ -23,7 +25,7 @@ const classifyBuilder = (prompt, answers, openai) => {
     }
   };
 
-  return classify;
+  return retry(TRY_LIMIT, classify);
 };
 
 module.exports = {

@@ -1,9 +1,7 @@
 const { Telegraf } = require("telegraf");
-// const { message } = require("telegraf/filters");
-// replace the value below with the Telegram token you receive from @BotFather
-const token = "6059954498:AAHKo5u9S7jgBxaMHIHbIPVJlnVljXfK4I8";
+const config = require("../config");
 
-const bot = new Telegraf(token);
+const bot = new Telegraf(config.TELEGRAM_BOT_TOKEN);
 bot.start((ctx) => ctx.reply("Привіт!"));
 bot.launch();
 
