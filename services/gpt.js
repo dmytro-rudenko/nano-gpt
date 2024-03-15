@@ -1,9 +1,6 @@
-// const { createCompletion } = require("gpt4all/src/gpt4all.js");
 const { ChatOllama } = require("@langchain/community/chat_models/ollama");
 const { ChatPromptTemplate } = require("@langchain/core/prompts");
-// const { ChatOpenAI } = require("@langchain/openai");
 const { logger } = require("./logger");
-// const config = require("../config");
 
 const DEFAULT_PROMPT_CONTEXT = {
   temp: 0.7,
@@ -14,35 +11,36 @@ const DEFAULT_PROMPT_CONTEXT = {
   nBatch: 8,
 };
 
-// const API_KEY = config.OPENAI_KEY;
-// const MODEL_TYPE = "local";
 const SYMBOLS = [".", "?", "!"];
 const MODEL_SETTINGS = {
   baseUrl: "http://localhost:11434",
-  model: "gemma:2b",
+  // model: 'qwen:0.5b-chat',
+  // model: "tinyllama:chat",
+  // model: "gemma:2b",
   // model: 'llama2:7b',
-  // model: "mistral",
+  model: "mistral",
+};
+
+const getModel = (modelParams) => {
+  const model = new ChatOllama(MODEL_SETTINGS);
+
+  return modelParams ? model.bind(modelParams) : model;
 };
 
 const useGpt = () => {
-  const getModel = (modelParams) => {
-    const model = new ChatOllama(MODEL_SETTINGS);
+  const controller = new AbortController();
 
-    return modelParams ? model.bind(modelParams) : model;
-  };
+  const chatModel = getModel({
+    signal: controller.signal,
+  });
 
-  const chatModel = getModel();
-
-  // if (MODEL_TYPE === "chatgpt") {
-  //   chatModel = new ChatOpenAI({
-  //     openAIApiKey: API_KEY,
-  //     modelName: "gpt-3.5-turbo",
-  //   })
-  // }
+  // abort requests if process is killed
+  process.on("SIGINT", () => controller.abort());
 
   const sendGpt = async (messages, options) => {
     const randomID = Math.floor(Math.random() * 1000000);
-    console.log("STARTED ID: " + options.messageId, {
+    const id = options.messageId || randomID;
+    console.log("STARTED ID:" + id, {
       messages,
       options,
     });
@@ -67,17 +65,24 @@ const useGpt = () => {
     for await (const chunk of stream) {
       if (chunk.content) {
         result += chunk.content;
-        bot.telegram.editMessageText(100718421, options.messageId, undefined, result);
-        console.log(`processing ID${randomID}: `, chunk.content);
+        if (options.messageId) {
+          bot.telegram.editMessageText(
+            100718421,
+            options.messageId,
+            undefined,
+            result
+          );
+        }
+        logger.log(`processing ID:${id} `, result);
       }
     }
 
-    console.log("FINISHED ID" + options.messageId, result);
+    console.log("FINISHED ID:" + id, result);
 
     return result;
   };
 
-  const makeQueryToLlm = async ({ message, options }) => {
+  const makeQueryToLLM = async ({ message, options }) => {
     logger.log("sendMessage:", {
       message,
       options,
@@ -94,17 +99,12 @@ const useGpt = () => {
       ],
       {
         temp: 0,
-        // ...DEFAULT_PROMPT_CONTEXT,
         ...options,
       }
     );
 
     // logger.log("usage", response.usage);
     // logger.log("response:\n", response);
-
-    // const sendEndTime = process.hrtime(sendStartTime);
-    // get process time in seconds
-    // logger.log(`Time: ${(sendEndTime[0] + sendEndTime[1] / 1e9).toFixed(3)}s`);
 
     return { response };
   };
@@ -133,8 +133,6 @@ const useGpt = () => {
     result = message.trim();
 
     if (result.length === 0) {
-      // logger.log("empty-result", message);
-
       return message;
     }
 
@@ -152,7 +150,6 @@ const useGpt = () => {
       });
 
       const response = await sendGpt(messages, {
-        // ...DEFAULT_PROMPT_CONTEXT,
         systemPromptTemplate: systemPrompt,
         ...options,
       });
@@ -187,16 +184,8 @@ const useGpt = () => {
     getModel,
     pipeline,
     cutIncompleteMessage,
-    makeQueryToLlm,
+    makeQueryToLLM,
   };
 };
-
-// const test = async () => {
-//   const { makeQueryToLlm } = useGpt();
-
-//   console.log(await makeQueryToLlm({ message: "Who are you? Tell detailed information" }));
-// };
-
-// test();
 
 module.exports = useGpt();

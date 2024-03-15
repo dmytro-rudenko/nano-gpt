@@ -1,7 +1,9 @@
 const { smartQuery } = require("../services/smart-query.js");
 
 const test = async () => {
-    const result = await smartQuery("В чому сенс життя?")
+    const result = await smartQuery({
+        query: "What is the meaning of life?",
+    })
     console.log("test result", result);
 
     // const result2 = await smartQuery("Поясни детальніше")

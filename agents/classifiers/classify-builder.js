@@ -17,7 +17,7 @@ const classifyBuilder = (systemMessage, answers, options) => {
 
   const chain = RunnableSequence.from([
     PromptTemplate.fromTemplate(
-      `{systemMessage}. \nYou can use only the following {answers}. \n{formatInstructions}. \nQUERY: {input}`
+      `{systemMessage}. You can use only the following {answers}. {formatInstructions}. QUERY: {input}`
     ),
     chatModel,
     parser,
@@ -49,23 +49,6 @@ const classifyBuilder = (systemMessage, answers, options) => {
 
   return classify;
 };
-
-// const test = async () => {
-//   try {
-//     const classify = newClassifyBuilder(
-//       "Determine type from the query whether it is a request for information or a task to be performed",
-//       ["request", "task"]
-//     );
-
-//     const result = await classify("send a message to these people");
-
-//     console.log("result", typeof result, result);
-//   } catch (error) {
-//     console.log("error", error);
-//   }
-// };
-
-// test();
 
 module.exports = {
   classifyBuilder,

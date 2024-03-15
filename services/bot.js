@@ -1,6 +1,6 @@
 const { Telegraf } = require("telegraf");
 const config = require("../config");
-const { makeQueryToLlm } = require("./gpt");
+const { makeQueryToLLM } = require("./gpt");
 const { getTranslatedText } = require("./translate");
 
 const bot = new Telegraf(config.TELEGRAM_BOT_TOKEN);
@@ -8,7 +8,7 @@ bot.start((ctx) => ctx.reply("Привіт!"));
 
 const start = async () => {
   bot.launch();
-  //   const { response } = await makeQueryToLlm({
+  //   const { response } = await makeQueryToLLM({
   //     message: "Who are you? Tell detailed information",
   //     options: {
   //         max_tokens: 10

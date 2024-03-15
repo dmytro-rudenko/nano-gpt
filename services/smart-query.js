@@ -1,21 +1,14 @@
-// const { getWikiSummary } = require("./wiki.js");
 const { googleSearch } = require("./google-search.js");
-// const { summarize } = require("./services/summarize.js");
-// const { useGpt } = require("./gpt.js");
-const { cutIncompleteMessage, pipeline } = require("./gpt.js");
-// const { getKeysFromQuery } = require("./tokenizer.js");
-const { logger } = require("./logger.js");
+const { cutIncompleteMessage, pipeline, makeQueryToLLM } = require("./gpt.js");
 const { getTranslatedText } = require("./translate.js");
-const { queryClassify } = require("../agents/classificators/query-classify.js");
+const { queryClassify } = require("../agents/classifiers/query-classify.js");
 const {
   requestClassify,
-} = require("../agents/classificators/request-classify.js");
+} = require("../agents/classifiers/request-classify.js");
+const { logger } = require("./logger.js");
 const memory = require("./memory.js");
-// let memory = {
-//   lastQuery: null,
-//   lastResult: null,
-//   startMemoryAt: null,
-// };
+
+const MODE = "simple";
 
 const smartQuery = async ({ query, messageId }) => {
   logger.log("query", query);
@@ -29,6 +22,18 @@ const smartQuery = async ({ query, messageId }) => {
   });
 
   let result = "";
+
+  if (MODE === "simple") {
+    result = await makeQueryToLLM({
+      message: query,
+      systemPrompt: "You are a helpful assistant.",
+      options: {
+        messageId,
+      },
+    });
+
+    return result;
+  }
 
   const queryType = await queryClassify(query);
 
@@ -56,7 +61,7 @@ const smartQuery = async ({ query, messageId }) => {
           systemPrompt: "You are a helpful assistant.",
           options: {
             messageId,
-          }
+          },
         });
       } else if (requestType === "precisely") {
         const googleData = await googleSearch(query);

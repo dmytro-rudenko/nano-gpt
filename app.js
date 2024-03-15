@@ -7,7 +7,7 @@ const main = async () => {
 
   // bot.help(async (ctx) =>
   //   ctx.reply(
-  //     await makeQueryToLlm({
+  //     await makeQueryToLLM({
   //       message: "Who are you? Tell detailed information",
   //     })
   //   )
