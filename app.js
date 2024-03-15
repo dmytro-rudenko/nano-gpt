@@ -1,23 +1,25 @@
 const { message } = require("telegraf/filters");
 const { bot } = require("./services/bot.js");
-const { useQueue } = require("./services/queue.js");
-const path = require("path");
-const { loadModel } = require("gpt4all");
-const main = async () => {
-  // const model = await loadModel("mistral-7b-openorca.gguf2.Q4_0.gguf", {
-  //   verbose: true,
-  //   modelPath: path.join(__dirname, "models"),
-  // });
-  const model = undefined
+const { handleTaskQueue, clearQueue } = require("./services/queue.js");
 
-  const { handleTaskQueue, clearQueue } = await useQueue(model);
+const main = async () => {
   await clearQueue();
-  
-  bot.help((ctx) => ctx.reply("Вітаємо!"));
+
+  // bot.help(async (ctx) =>
+  //   ctx.reply(
+  //     await makeQueryToLlm({
+  //       message: "Who are you? Tell detailed information",
+  //     })
+  //   )
+  // );
+
   bot.on(message("text"), async (ctx) => {
-    console.log("ctx", ctx.update.message.chat);
-    handleTaskQueue.add({ query: ctx.update.message.text });
-    ctx.reply("Трішки часу... Думаю над відповідю...");
+    // console.log("ctx", ctx.update.message.chat);
+    const message = await ctx.reply('...')
+
+    console.log("message", message);
+
+    handleTaskQueue.add({ query: ctx.update.message.text, messageId: message.message_id });
   });
 
   // Enable graceful stop

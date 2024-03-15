@@ -2,22 +2,32 @@ const Queue = require("bull");
 const { smartQuery } = require("./smart-query.js");
 const { bot } = require("./bot.js");
 
-const useQueue = async (model) => {
+const useQueue = (model) => {
   const handleTaskQueue = new Queue("task-handler");
 
   handleTaskQueue.process(async (job, done) => {
-    const { query } = job.data;
-    const result = await smartQuery(query, model);
-    // send result to bot
-    let message = `Ось відповідь на ваш запит:\n\n"${query}"\n\n`;
+    const { query, messageId } = job.data;
 
-    if (result) {
-      message += result;
-    }
+    let dots = "";
 
-    bot.telegram.sendMessage(100718421, message, {
+    const loaderAnimation = setInterval(() => {
+      if (dots.length === 3) {
+        dots = "";
+      }
+
+      dots += ".";
+    }, 1000);
+
+    const result = await smartQuery({ query, messageId }).catch(() => {
+      clearInterval(loaderAnimation);
+
+      return "Sorry, the request could not be processed, please try again.";
+    });
+
+    bot.telegram.sendMessage(100718421, result, {
       parse_mode: "HTML",
     });
+
     done(null, result);
   });
 
@@ -32,6 +42,4 @@ const useQueue = async (model) => {
   };
 };
 
-module.exports = {
-    useQueue
-};
+module.exports = useQueue();

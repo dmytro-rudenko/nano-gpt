@@ -1,8 +1,8 @@
-const { classifyBuilder } = require("./classify-builder");
+const { classifyBuilder } = require("./new-classify-builder");
 
 const queryClassify = async (query) =>
   classifyBuilder(
-    "You are a classification specialist. Your task is to determine from the text whether it is a request for information or a task to be performed.",
+    "Determine from the text whether it is a request for information or a task to be performed.",
     ["request", "task"]
   )(query);
 

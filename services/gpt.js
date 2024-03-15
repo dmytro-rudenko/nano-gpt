@@ -1,7 +1,9 @@
-const { createCompletion } = require("gpt4all/src/gpt4all.js");
-const { OpenAI } = require("openai");
+// const { createCompletion } = require("gpt4all/src/gpt4all.js");
+const { ChatOllama } = require("@langchain/community/chat_models/ollama");
+const { ChatPromptTemplate } = require("@langchain/core/prompts");
+// const { ChatOpenAI } = require("@langchain/openai");
 const { logger } = require("./logger");
-const config = require("../config");
+// const config = require("../config");
 
 const DEFAULT_PROMPT_CONTEXT = {
   temp: 0.7,
@@ -12,61 +14,76 @@ const DEFAULT_PROMPT_CONTEXT = {
   nBatch: 8,
 };
 
-const API_KEY = config.OPENAI_KEY
+// const API_KEY = config.OPENAI_KEY;
+// const MODEL_TYPE = "local";
+const SYMBOLS = [".", "?", "!"];
+const MODEL_SETTINGS = {
+  baseUrl: "http://localhost:11434",
+  model: "gemma:2b",
+  // model: 'llama2:7b',
+  // model: "mistral",
+};
 
-const openai = new OpenAI({
-  apiKey: API_KEY,
-});
+const useGpt = () => {
+  const getModel = (modelParams) => {
+    const model = new ChatOllama(MODEL_SETTINGS);
 
-const MODEL_TYPE = "chatgpt";
-const symbols = [".", "?", "!"];
-
-const useGpt = async (model) => {
-  const sendToLocalModel = async (messages, opts) => {
-    // rm first message
-    messages.shift();
-    const response = await createCompletion(model, messages, opts);
-    return response;
+    return modelParams ? model.bind(modelParams) : model;
   };
 
-  const sendToChatGpt = async (messages, opts, options) => {
-    // console.log("opts", opts);
-    const promptMessages = [
-      {
-        role: "system",
-        content: opts.systemPromptTemplate,
-      },
-    ].concat(messages);
-    // logger.log("messages", promptMessages);
-    const config = {
-      temperature: 1.0,
-      max_tokens: 512,
-      model: "gpt-3.5-turbo-0613",
-      messages: promptMessages,
-      ...options,
-    };
+  const chatModel = getModel();
 
-    // console.log("config", JSON.stringify(config, null, 2));
+  // if (MODEL_TYPE === "chatgpt") {
+  //   chatModel = new ChatOpenAI({
+  //     openAIApiKey: API_KEY,
+  //     modelName: "gpt-3.5-turbo",
+  //   })
+  // }
 
-    const completion = await openai.chat.completions.create(config);
+  const sendGpt = async (messages, options) => {
+    const randomID = Math.floor(Math.random() * 1000000);
+    console.log("STARTED ID: " + options.messageId, {
+      messages,
+      options,
+    });
 
-    // logger.log("completion", completion);
+    let promptMessages = [];
 
-    return completion;
-  };
-
-  const sendGpt = async (messages, opts, type, openai) => {
-    if (type === "local") {
-      return sendToLocalModel(messages, opts);
-    } else if (type === "chatgpt") {
-      return sendToChatGpt(messages, opts, openai);
+    if (options.systemPrompt) {
+      promptMessages.push(["system", options.systemPrompt]);
     }
+
+    messages.forEach(({ role, content }) => {
+      promptMessages.push([role, content]);
+    });
+
+    const prompt = ChatPromptTemplate.fromMessages(promptMessages);
+
+    const chain = prompt.pipe(chatModel);
+    const stream = await chain.stream();
+
+    let result = "";
+
+    for await (const chunk of stream) {
+      if (chunk.content) {
+        result += chunk.content;
+        bot.telegram.editMessageText(100718421, options.messageId, undefined, result);
+        console.log(`processing ID${randomID}: `, chunk.content);
+      }
+    }
+
+    console.log("FINISHED ID" + options.messageId, result);
+
+    return result;
   };
 
-  const sendMessageToChat = async ({ message, systemPrompt, options }) => {
-    logger.log("sendMessage:", message);
+  const makeQueryToLlm = async ({ message, options }) => {
+    logger.log("sendMessage:", {
+      message,
+      options,
+    });
 
-    const sendStartTime = process.hrtime();
+    // const sendStartTime = process.hrtime();
 
     const response = await sendGpt(
       [
@@ -76,17 +93,16 @@ const useGpt = async (model) => {
         },
       ],
       {
-        ...DEFAULT_PROMPT_CONTEXT,
-        systemPromptTemplate: systemPrompt,
-      },
-      MODEL_TYPE,
-      options
+        temp: 0,
+        // ...DEFAULT_PROMPT_CONTEXT,
+        ...options,
+      }
     );
 
     // logger.log("usage", response.usage);
     // logger.log("response:\n", response);
 
-    const sendEndTime = process.hrtime(sendStartTime);
+    // const sendEndTime = process.hrtime(sendStartTime);
     // get process time in seconds
     // logger.log(`Time: ${(sendEndTime[0] + sendEndTime[1] / 1e9).toFixed(3)}s`);
 
@@ -97,16 +113,16 @@ const useGpt = async (model) => {
     let result = message;
     // if sentence ends without ".", "?", or "!", cut it
 
-    if (symbols.every((symbol) => message.endsWith(symbol))) {
+    if (SYMBOLS.every((symbol) => message.endsWith(symbol))) {
       return result;
     }
 
     // if in message only one sentence, without ".", "?", or "!" - send message
-    if (symbols.every((symbol) => !message.includes(symbol))) {
+    if (SYMBOLS.every((symbol) => !message.includes(symbol))) {
       return result;
     }
 
-    for (const symbol of symbols) {
+    for (const symbol of SYMBOLS) {
       if (!message.endsWith(symbol)) {
         const lastSymbolIndex = message.lastIndexOf(symbol);
         result = message.substring(0, lastSymbolIndex + 1);
@@ -125,7 +141,7 @@ const useGpt = async (model) => {
     return result;
   };
 
-  const pipeline = async ({ message, systemPrompt }) => {
+  const pipeline = async ({ message, systemPrompt, options }) => {
     let messages = [];
 
     // logger.log("pipeline", message);
@@ -135,30 +151,16 @@ const useGpt = async (model) => {
         content: msg,
       });
 
-      const response = await sendGpt(
-        messages,
-        {
-          ...DEFAULT_PROMPT_CONTEXT,
-          systemPromptTemplate: systemPrompt,
-        },
-        MODEL_TYPE
-      );
-
-      if (!messages[0].role === "system") {
-        messages = [
-          {
-            role: "system",
-            content: systemPrompt,
-          },
-        ].concat(messages);
-      }
+      const response = await sendGpt(messages, {
+        // ...DEFAULT_PROMPT_CONTEXT,
+        systemPromptTemplate: systemPrompt,
+        ...options,
+      });
 
       messages.push({
         role: "assistant",
-        content: response.choices[0].message.content,
+        content: response,
       });
-
-      // logger.log("dialog", JSON.stringify(messages, null, 2));
 
       return {
         response,
@@ -181,13 +183,20 @@ const useGpt = async (model) => {
   };
 
   return {
-    model,
+    chatModel,
+    getModel,
     pipeline,
     cutIncompleteMessage,
-    sendMessageToChat,
+    makeQueryToLlm,
   };
 };
 
-module.exports = {
-  useGpt,
-};
+// const test = async () => {
+//   const { makeQueryToLlm } = useGpt();
+
+//   console.log(await makeQueryToLlm({ message: "Who are you? Tell detailed information" }));
+// };
+
+// test();
+
+module.exports = useGpt();
