@@ -8,9 +8,9 @@ bot.start((ctx) => ctx.reply("Привіт!"));
 
 const start = () => {
   bot.launch({
-    webhook: {
-      domain: "https://api.telegram.org/bot6059954498:AAHKo5u9S7jgBxaMHIHbIPVJlnVljXfK4I8/setWebhook",
-    },
+    // webhook: {
+    //   domain: "https://api.telegram.org/bot6059954498:AAHKo5u9S7jgBxaMHIHbIPVJlnVljXfK4I8/setWebhook",
+    // },
   });
   //   const { response } = await makeQueryToLLM({
   //     message: "Who are you? Tell detailed information",

@@ -12,25 +12,31 @@ const main = async () => {
   //     })
   //   )
   // );
-
   bot.on(message("text"), async (ctx) => {
-    // console.log("ctx", ctx.update.message.chat);
-    const message = await ctx.reply('...')
+    console.log("ctx", ctx.update.message.chat);
+    const message = await ctx.reply("...");
 
     console.log("message", message);
 
-    handleTaskQueue.add({ query: ctx.update.message.text, messageId: message.message_id });
+    handleTaskQueue.add({
+      query: ctx.update.message.text,
+      messageId: message.message_id,
+    });
   });
 
   // Enable graceful stop
-  process.once("SIGINT", () =>{
+  process.once("SIGINT", () => {
     console.log("Stopping...");
-    bot.stop("SIGINT")
+    bot.stop("SIGINT");
   });
   process.once("SIGTERM", () => {
     console.log("Stopping...");
-    bot.stop("SIGTERM")
+    bot.stop("SIGTERM");
   });
 };
 
-main();
+main()
+  .catch((err) => console.log(err))
+  .finally(() => {
+    console.log("Bot stopped finally");
+  });

@@ -13,7 +13,7 @@ const DEFAULT_PROMPT_CONTEXT = {
 
 const SYMBOLS = [".", "?", "!"];
 const MODEL_SETTINGS = {
-  baseUrl: "http://localhost:11434",
+  baseUrl: "http://ollama:11434",
   model: "qwen:0.5b-chat",
   // model: "tinyllama:chat",
   // model: "gemma:2b",
