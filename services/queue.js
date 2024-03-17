@@ -16,6 +16,10 @@ const useQueue = (model) => {
       }
 
       dots += ".";
+
+      // bot.telegram.sendMessage(100718421, result, {
+      //   parse_mode: "HTML",
+      // });
     }, 1000);
 
     const result = await smartQuery({ query, messageId }).catch(() => {

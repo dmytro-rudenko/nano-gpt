@@ -14,11 +14,11 @@ const DEFAULT_PROMPT_CONTEXT = {
 const SYMBOLS = [".", "?", "!"];
 const MODEL_SETTINGS = {
   baseUrl: "http://localhost:11434",
-  // model: 'qwen:0.5b-chat',
+  model: "qwen:0.5b-chat",
   // model: "tinyllama:chat",
   // model: "gemma:2b",
   // model: 'llama2:7b',
-  model: "mistral",
+  // model: "mistral",
 };
 
 const getModel = (modelParams) => {
@@ -35,7 +35,11 @@ const useGpt = () => {
   });
 
   // abort requests if process is killed
-  process.on("SIGINT", () => controller.abort());
+//   process.on("SIGINT", () => {
+//     controller.abort();
+
+//     process.exit(0);
+//   });
 
   const sendGpt = async (messages, options) => {
     const randomID = Math.floor(Math.random() * 1000000);
@@ -64,15 +68,16 @@ const useGpt = () => {
 
     for await (const chunk of stream) {
       if (chunk.content) {
+        console.log("chunk", chunk);
         result += chunk.content;
-        if (options.messageId) {
-          bot.telegram.editMessageText(
-            100718421,
-            options.messageId,
-            undefined,
-            result
-          );
-        }
+        // if (options.messageId) {
+        //   bot.telegram.editMessageText(
+        //     100718421,
+        //     options.messageId,
+        //     undefined,
+        //     result
+        //   );
+        // }
         logger.log(`processing ID:${id} `, result);
       }
     }

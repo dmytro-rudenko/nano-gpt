@@ -32,7 +32,7 @@ const smartQuery = async ({ query, messageId }) => {
       },
     });
 
-    return result;
+    return result.response
   }
 
   const queryType = await queryClassify(query);

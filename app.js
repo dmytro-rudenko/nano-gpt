@@ -23,8 +23,14 @@ const main = async () => {
   });
 
   // Enable graceful stop
-  process.once("SIGINT", () => bot.stop("SIGINT"));
-  process.once("SIGTERM", () => bot.stop("SIGTERM"));
+  process.once("SIGINT", () =>{
+    console.log("Stopping...");
+    bot.stop("SIGINT")
+  });
+  process.once("SIGTERM", () => {
+    console.log("Stopping...");
+    bot.stop("SIGTERM")
+  });
 };
 
 main();

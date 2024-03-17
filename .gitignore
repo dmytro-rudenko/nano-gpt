@@ -2,5 +2,6 @@ node_modules
 cache
 models
 dist
+ollama
 
 .env
