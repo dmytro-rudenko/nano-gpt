@@ -1,7 +1,7 @@
 const { ChatOllama } = require("@langchain/community/chat_models/ollama");
 const { ChatPromptTemplate } = require("@langchain/core/prompts");
 const { logger } = require("./logger");
-// const { bot } = require("./bot.js");
+const { bot } = require("./bot.js");
 
 const DEFAULT_PROMPT_CONTEXT = {
   temp: 0.7,
@@ -16,10 +16,10 @@ const SYMBOLS = [".", "?", "!"];
 const MODEL_SETTINGS = {
   baseUrl: "http://ollama:11434",
   // model: "qwen:0.5b-chat",
-  model: "tinyllama:chat",
+  // model: "tinyllama:chat",
   // model: "gemma:2b",
   // model: 'llama2:7b',
-  // model: "mistral",
+  model: "mistral",
 };
 
 const getModel = (modelParams) => {
@@ -35,12 +35,12 @@ const useGpt = () => {
     signal: controller.signal,
   });
 
-  // abort requests if process is killed
-  //   process.on("SIGINT", () => {
-  //     controller.abort();
+//  abort requests if process is killed
+    process.on("SIGINT", () => {
+      controller.abort();
 
-  //     process.exit(0);
-  //   });
+      // process.exit(0);
+    });
 
   const sendGpt = async (messages, options) => {
     const randomID = Math.floor(Math.random() * 1000000);
@@ -67,22 +67,26 @@ const useGpt = () => {
 
     let result = "";
 
+    const streamInfo = setInterval(() => {
+      if (options.messageId && result !== "") {
+        bot.telegram.editMessageText(
+          100718421,
+          options.messageId,
+          undefined,
+          result + "... "
+        );
+      }
+    }, 3000);
+
     for await (const chunk of stream) {
       if (chunk.content) {
         console.log("chunk", chunk);
         result += chunk.content;
-        // if (options.messageId) {
-        //   bot.telegram.editMessageText(
-        //     100718421,
-        //     options.messageId,
-        //     undefined,
-        //     result
-        //   );
-        // }
         logger.log(`processing ID:${id} `, result);
       }
     }
 
+    clearInterval(streamInfo);
     console.log("FINISHED ID:" + id, result);
 
     return result;

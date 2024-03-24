@@ -1,6 +1,6 @@
 const { Telegraf } = require("telegraf");
 const config = require("../config");
-const { makeQueryToLLM } = require("./gpt");
+// const { makeQueryToLLM } = require("./gpt");
 const { getTranslatedText } = require("./translate");
 
 const useBot = () => {
