@@ -1,6 +1,7 @@
 const { ChatOllama } = require("@langchain/community/chat_models/ollama");
 const { ChatPromptTemplate } = require("@langchain/core/prompts");
 const { logger } = require("./logger");
+// const { bot } = require("./bot.js");
 
 const DEFAULT_PROMPT_CONTEXT = {
   temp: 0.7,
@@ -14,8 +15,8 @@ const DEFAULT_PROMPT_CONTEXT = {
 const SYMBOLS = [".", "?", "!"];
 const MODEL_SETTINGS = {
   baseUrl: "http://ollama:11434",
-  model: "qwen:0.5b-chat",
-  // model: "tinyllama:chat",
+  // model: "qwen:0.5b-chat",
+  model: "tinyllama:chat",
   // model: "gemma:2b",
   // model: 'llama2:7b',
   // model: "mistral",
@@ -35,11 +36,11 @@ const useGpt = () => {
   });
 
   // abort requests if process is killed
-//   process.on("SIGINT", () => {
-//     controller.abort();
+  //   process.on("SIGINT", () => {
+  //     controller.abort();
 
-//     process.exit(0);
-//   });
+  //     process.exit(0);
+  //   });
 
   const sendGpt = async (messages, options) => {
     const randomID = Math.floor(Math.random() * 1000000);

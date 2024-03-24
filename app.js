@@ -1,10 +1,9 @@
 const { message } = require("telegraf/filters");
-const { bot } = require("./services/bot.js");
-const { handleTaskQueue, clearQueue } = require("./services/queue.js");
+const { bot, startBot } = require("./services/bot.js");
+const { handleTaskQueue } = require("./services/queue.js");
 
 const main = async () => {
-  await clearQueue();
-
+  startBot()
   // bot.help(async (ctx) =>
   //   ctx.reply(
   //     await makeQueryToLLM({
@@ -12,6 +11,7 @@ const main = async () => {
   //     })
   //   )
   // );
+
   bot.on(message("text"), async (ctx) => {
     console.log("ctx", ctx.update.message.chat);
     const message = await ctx.reply("...");
@@ -24,7 +24,7 @@ const main = async () => {
     });
   });
 
-  // Enable graceful stop
+//  Enable graceful stop
   process.once("SIGINT", () => {
     console.log("Stopping...");
     bot.stop("SIGINT");
@@ -36,7 +36,7 @@ const main = async () => {
 };
 
 main()
-  .catch((err) => console.log(err))
-  .finally(() => {
-    console.log("Bot stopped finally");
-  });
+  .then(() => {
+    console.log("Bot init done");
+  })
+  .catch((err) => console.log(err));

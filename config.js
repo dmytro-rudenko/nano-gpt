@@ -4,5 +4,6 @@ dotenv.config();
 
 module.exports = {
     OPENAI_KEY : process.env.OPENAI_KEY,
-    TELEGRAM_BOT_TOKEN : process.env.TELEGRAM_BOT_TOKEN
+    TELEGRAM_BOT_TOKEN : process.env.TELEGRAM_BOT_TOKEN,
+    NODE_ENV : process.env.NODE_ENV || "development"
 }

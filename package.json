@@ -1,7 +1,8 @@
 {
   "scripts": {
     "start": "node app.js",
-    "start:reset": "node cache clear && node app.js"
+    "start:reset": "node cache clear && node app.js",
+    "test": "node test/chat"
   },
   "dependencies": {
     "@langchain/core": "^0.1.47",

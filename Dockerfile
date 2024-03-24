@@ -14,7 +14,7 @@ COPY package.json ./
 
 # Install dependencies
 RUN npm install --legacy-peer-deps
-#RUN ollama:/root/.ollama pull qwen:0.5b-chat
+# RUN docker exec -it ollama  ollama pull qwen:0.5b-chat
 
 COPY . .
 

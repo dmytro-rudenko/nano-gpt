@@ -9,7 +9,15 @@ services:
       - 11434
     ports:
       - "11434:11434"
-    restart: always
+    # restart: always
+
+  redis:
+    image: redis:5
+    container_name: redis
+    environment:
+      REDIS_REPLICATION_MODE: master
+    # ports:
+    #   - "6378:6379"
 
   bot:
     container_name: bot
@@ -21,10 +29,10 @@ services:
       - ollama
     environment:
       TELEGRAM_BOT_TOKEN: 6059954498:AAHKo5u9S7jgBxaMHIHbIPVJlnVljXfK4I8
-      # OLLAMA_HOST: 0.0.0.0
+      #OLLAMA_HOST: 0.0.0.0
     ports:
       - "8080:8080"
-    restart: always
+    # restart: always
 
 networks:
   default:
