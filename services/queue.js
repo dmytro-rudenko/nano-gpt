@@ -5,7 +5,7 @@ const { bot } = require("./bot.js");
 const useQueue = () => {
   const handleTaskQueue = new Queue("task-handler", {
     redis: {
-      host: "redis",
+      // host: "redis",
       port: 6379,
     },
   });

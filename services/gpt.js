@@ -10,16 +10,21 @@ const DEFAULT_PROMPT_CONTEXT = {
   repeatPenalty: 1.18,
   repeatLastN: 64,
   nBatch: 8,
+  maxTokens: 1028,
 };
 
 const SYMBOLS = [".", "?", "!"];
+
+const MODEL = 'mistral';
+
 const MODEL_SETTINGS = {
-  baseUrl: "http://ollama:11434",
+  // baseUrl: "http://ollama:11434",
   // model: "qwen:0.5b-chat",
   // model: "tinyllama:chat",
   // model: "gemma:2b",
   // model: 'llama2:7b',
-  model: "mistral",
+  // model: "mistral",
+  model: MODEL
 };
 
 const getModel = (modelParams) => {
@@ -38,8 +43,7 @@ const useGpt = () => {
 //  abort requests if process is killed
     process.on("SIGINT", () => {
       controller.abort();
-
-      // process.exit(0);
+      process.exit(0);
     });
 
   const sendGpt = async (messages, options) => {
@@ -67,7 +71,7 @@ const useGpt = () => {
 
     let result = "";
 
-    const streamInfo = setInterval(() => {
+    const streamInfo = setInterval(async () => {
       if (options.messageId && result !== "") {
         bot.telegram.editMessageText(
           100718421,
@@ -76,11 +80,17 @@ const useGpt = () => {
           result + "... "
         );
       }
+      if (options.logToBot && !options.messageId && result !== "") {
+        const message = await bot.telegram.sendMessage(100718421, result + "... ");
+        console.log("message", message);
+        options.messageId = message.message_id;
+      }
+
     }, 3000);
 
     for await (const chunk of stream) {
       if (chunk.content) {
-        console.log("chunk", chunk);
+        // console.log("chunk", chunk);
         result += chunk.content;
         logger.log(`processing ID:${id} `, result);
       }

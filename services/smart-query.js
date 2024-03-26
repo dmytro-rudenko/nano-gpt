@@ -24,18 +24,57 @@ const smartQuery = async ({ query, messageId }) => {
   let result = "";
 
   if (MODE === "simple") {
-    result = await makeQueryToLLM({
-      message: query,
-      systemPrompt: "You are a helpful assistant.",
-      options: {
-        messageId,
-      },
+    // result = await makeQueryToLLM({
+    //   message: query,
+    //   systemPrompt: "You are a helpful assistant.",
+    //   options: {
+    //     messageId,
+    //   },
+    // });
+
+    // return result.response
+
+    let pipe;
+    let response;
+
+    const isMemoryActive =
+      memory.get("startMemoryAt") > new Date().getTime() - 10 * 60 * 1000;
+
+    if (!isMemoryActive) {
+      pipe = await pipeline({
+        message: query,
+        systemPrompt: "You are a helpful assistant.",
+        options: {
+          messageId,
+        },
+      });
+
+      console.log("pipeline", pipe);
+
+      memory.set("lastQuery", query);
+      memory.send = pipe.send;
+      response = pipe.response;
+
+      memory.set("startMemoryAt", new Date().getTime());
+    } else {
+      const res = await memory.send(query);
+      response = res.response;
+    }
+
+    logger.log("response:", response);
+
+    result = cutIncompleteMessage(response);
+
+    result = await getTranslatedText({
+      from: "en",
+      to: "uk",
+      text: result,
     });
 
-    return result.response
+    return result;
   }
 
-  const queryType = await queryClassify(query);
+  // const queryType = await queryClassify(query);
 
   logger.log("queryType", queryType);
 

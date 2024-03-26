@@ -1,6 +1,6 @@
 const { message } = require("telegraf/filters");
 const { bot, startBot } = require("./services/bot.js");
-const { handleTaskQueue } = require("./services/queue.js");
+const { handleTaskQueue, clearQueue } = require("./services/queue.js");
 
 const main = async () => {
   startBot()
@@ -28,15 +28,19 @@ const main = async () => {
   process.once("SIGINT", () => {
     console.log("Stopping...");
     bot.stop("SIGINT");
+    clearQueue();
+    process.exit(0);
   });
   process.once("SIGTERM", () => {
     console.log("Stopping...");
     bot.stop("SIGTERM");
+    clearQueue();
+    process.exit(0);
   });
 };
 
 main()
-  .then(() => {
-    console.log("Bot init done");
-  })
+  // .then(() => {
+  //   console.log("Bot init done");
+  // })
   .catch((err) => console.log(err));
