@@ -15,7 +15,7 @@ const DEFAULT_PROMPT_CONTEXT = {
 
 const SYMBOLS = [".", "?", "!"];
 
-const MODEL = 'mistral';
+const MODEL = 'gemma:2b';
 
 const MODEL_SETTINGS = {
   // baseUrl: "http://ollama:11434",
